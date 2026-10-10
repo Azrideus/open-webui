@@ -1217,6 +1217,16 @@ async def get_event_emitter(request_info, update_db=True):
                     touch=False,
                 )
 
+            elif event_type == 'chat:message:follow_ups':
+                await Chats.upsert_message_to_chat_by_id_and_message_id(
+                    chat_id,
+                    message_id,
+                    {
+                        'followUps': event_data.get('data', {}).get('follow_ups', []),
+                    },
+                    touch=False,
+                )
+
             elif event_type == 'files':
                 files = event_data.get('data', {}).get('files', [])
                 existing_files = await Chats.get_message_metadata(chat_id, message_id, 'files')
