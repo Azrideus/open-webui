@@ -1,5 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, defaultClientConditions } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -8,7 +8,8 @@ const backendTarget = process.env.WEBUI_BACKEND_URL || 'http://localhost:8080';
 
 export default defineConfig({
 	resolve: {
-		conditions: ['onnxruntime-web-use-extern-wasm']
+		// Vite 6+ no longer merges defaults; without them svelte resolves to its server build
+		conditions: [...defaultClientConditions, 'onnxruntime-web-use-extern-wasm']
 	},
 	plugins: [
 		tailwindcss(),
