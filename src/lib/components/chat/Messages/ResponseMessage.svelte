@@ -197,6 +197,29 @@
 		getOutputText(message.output) || removeAllDetails(message.content ?? '');
 	$: hasResponseContent = Boolean((message.content ?? '').trim() || message.output?.length);
 
+	$: showFollowUps =
+		(isLastMessage || ($settings?.keepFollowUpPrompts ?? false)) &&
+		message.done &&
+		!readOnly &&
+		(message?.followUps ?? []).length > 0;
+	// When follow-ups are shown and the reply ends with a question, lift that line into the follow-up box
+	$: followUpQuestionRaw = showFollowUps
+		? ((visibleResponseContent ?? '').trim().split('\n').at(-1) ?? '').trim()
+		: '';
+	$: followUpQuestion = followUpQuestionRaw.replace(/[*_#>`]/g, '').trim().endsWith('?')
+		? followUpQuestionRaw.replace(/[*_#>`]/g, '').trim()
+		: '';
+	$: displayContent = (() => {
+		const content = message.content ?? '';
+		const idx = followUpQuestion ? content.lastIndexOf(followUpQuestionRaw) : -1;
+		return idx === -1
+			? content
+			: content.slice(0, idx) + content.slice(idx + followUpQuestionRaw.length);
+	})();
+	$: displayOutput = followUpQuestion
+		? replaceOutputMessageText(message.output, followUpQuestionRaw, '')
+		: message.output;
+
 	let edit = false;
 	let editedContent = '';
 	let editedOutput: any[] | null = null;
@@ -838,8 +861,8 @@
 									id={`${chatId}-${message.id}`}
 									{chatId}
 									messageId={message.id}
-									content={message.content}
-									output={message.output}
+									content={displayContent}
+									output={displayOutput}
 									sources={message.sources}
 									floatingButtons={message?.done &&
 										!readOnly &&
@@ -1630,9 +1653,10 @@
 						{/key}
 					{/if}
 
-					{#if (isLastMessage || ($settings?.keepFollowUpPrompts ?? false)) && message.done && !readOnly && (message?.followUps ?? []).length > 0}
+					{#if showFollowUps}
 						<div class="my-2.5" in:fade={{ duration: 100 }}>
 							<FollowUps
+								question={followUpQuestion}
 								followUps={message?.followUps}
 								onClick={(prompt) => {
 									if ($settings?.insertFollowUpPrompt ?? false) {
