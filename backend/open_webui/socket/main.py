@@ -1223,6 +1223,7 @@ async def get_event_emitter(request_info, update_db=True):
                     message_id,
                     {
                         'followUps': event_data.get('data', {}).get('follow_ups', []),
+                        'followUpQuestion': event_data.get('data', {}).get('question') or '',
                     },
                     touch=False,
                 )

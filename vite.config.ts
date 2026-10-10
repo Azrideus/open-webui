@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
@@ -10,13 +11,15 @@ export default defineConfig({
 		conditions: ['onnxruntime-web-use-extern-wasm']
 	},
 	plugins: [
+		tailwindcss(),
 		sveltekit(),
 		viteStaticCopy({
 			targets: [
 				{
 					src: 'node_modules/onnxruntime-web/dist/*.jsep.*',
 
-					dest: 'wasm'
+					dest: 'wasm',
+					rename: { stripBase: true }
 				}
 			]
 		})
@@ -26,7 +29,13 @@ export default defineConfig({
 		APP_BUILD_HASH: JSON.stringify(process.env.APP_BUILD_HASH || 'dev-build')
 	},
 	build: {
-		sourcemap: false
+		sourcemap: false,
+		rolldownOptions: {
+			treeshake: {
+				manualPureFunctions:
+					process.env.ENV === 'dev' ? [] : ['console.log', 'console.debug', 'console.error']
+			}
+		}
 	},
 	server: {
 		proxy: {
@@ -56,8 +65,5 @@ export default defineConfig({
 	},
 	worker: {
 		format: 'es'
-	},
-	esbuild: {
-		pure: process.env.ENV === 'dev' ? [] : ['console.log', 'console.debug', 'console.error']
 	}
 });

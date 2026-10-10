@@ -1292,6 +1292,7 @@
 					}
 				} else if (type === 'chat:message:follow_ups') {
 					message.followUps = data.follow_ups;
+					message.followUpQuestion = data.question ?? '';
 
 					if (shouldAutoScrollResponse()) {
 						scrollToBottom('smooth');

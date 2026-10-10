@@ -24,11 +24,11 @@
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "3.2.2",
 		"@sveltejs/adapter-static": "^3.0.2",
-		"@sveltejs/kit": "^2.5.27",
-		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/container-queries": "^0.1.1",
-		"@tailwindcss/postcss": "^4.0.0",
 		"@tailwindcss/typography": "^0.5.13",
+		"@tailwindcss/vite": "^4.3.3",
 		"@typescript-eslint/eslint-plugin": "^8.31.1",
 		"@typescript-eslint/parser": "^8.31.1",
 		"cypress": "^13.15.0",
@@ -44,11 +44,11 @@
 		"svelte": "^5.53.10",
 		"svelte-check": "^4.0.0",
 		"svelte-confetti": "^2.3.2",
-		"tailwindcss": "^4.0.0",
+		"tailwindcss": "^4.3.3",
 		"tslib": "^2.4.1",
 		"typescript": "^5.5.4",
-		"vite": "^5.4.21",
-		"vitest": "^1.6.1"
+		"vite": "^8.3.4",
+		"vitest": "^5.0.3"
 	},
 	"type": "module",
 	"dependencies": {
@@ -147,7 +147,7 @@
 		"uuid": "^11.1.1",
 		"vega": "^6.2.0",
 		"vega-lite": "^6.4.1",
-		"vite-plugin-static-copy": "^2.2.0",
+		"vite-plugin-static-copy": "^4.1.1",
 		"xlsx": "^0.18.5",
 		"y-prosemirror": "^1.3.7",
 		"y-protocols": "^1.0.7",

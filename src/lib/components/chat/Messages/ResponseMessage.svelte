@@ -203,12 +203,15 @@
 		!readOnly &&
 		(message?.followUps ?? []).length > 0;
 	// When follow-ups are shown and the reply ends with a question, lift that line into the follow-up box
+	// An explicit question sent with the follow-ups wins; otherwise guess from the last line
 	$: followUpQuestionRaw = showFollowUps
-		? ((visibleResponseContent ?? '').trim().split('\n').at(-1) ?? '').trim()
+		? (message?.followUpQuestion || ((visibleResponseContent ?? '').trim().split('\n').at(-1) ?? '')).trim()
 		: '';
-	$: followUpQuestion = followUpQuestionRaw.replace(/[*_#>`]/g, '').trim().endsWith('?')
-		? followUpQuestionRaw.replace(/[*_#>`]/g, '').trim()
-		: '';
+	$: followUpQuestion = message?.followUpQuestion
+		? followUpQuestionRaw
+		: followUpQuestionRaw.replace(/[*_#>`]/g, '').trim().endsWith('?')
+			? followUpQuestionRaw.replace(/[*_#>`]/g, '').trim()
+			: '';
 	$: displayContent = (() => {
 		const content = message.content ?? '';
 		const idx = followUpQuestion ? content.lastIndexOf(followUpQuestionRaw) : -1;
