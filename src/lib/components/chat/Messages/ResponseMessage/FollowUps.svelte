@@ -1,6 +1,5 @@
 <script lang="ts">
-	import Tooltip from '$lib/components/common/Tooltip.svelte';
-	import { onMount, tick, getContext } from 'svelte';
+	import { getContext } from 'svelte';
 
 	const i18n = getContext('i18n');
 
@@ -8,28 +7,23 @@
 	export let onClick: (followUp: string) => void = () => {};
 </script>
 
-<div class="mt-4">
-	<div class="text-sm font-normal">
+<div
+	class="mt-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/60 p-3"
+>
+	<div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 px-0.5">
 		{$i18n.t('Follow up')}
 	</div>
 
-	<div class="flex flex-col text-left gap-1 mt-1.5">
+	<div class="flex flex-wrap gap-2">
 		{#each followUps as followUp, idx (idx)}
-			<Tooltip content={followUp} placement="top-start" className="line-clamp-1">
-				<button
-					class=" py-1 bg-transparent text-left text-sm flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition cursor-pointer w-full"
-					on:click={() => onClick(followUp)}
-					aria-label={$i18n.t('Follow up: {{question}}', { question: followUp })}
-				>
-					<div class="line-clamp-1">
-						{followUp}
-					</div>
-				</button>
-			</Tooltip>
-
-			{#if idx < followUps.length - 1}
-				<hr class="border-gray-50 dark:border-gray-850/30" />
-			{/if}
+			<button
+				class="{followUp.length > 30 ? 'w-full' : ''} px-3.5 py-2 rounded-xl text-sm text-left border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 text-gray-800 dark:text-gray-100 shadow-xs transition duration-150 cursor-pointer max-w-full hover:bg-gray-900 hover:text-white hover:border-gray-900 dark:hover:bg-gray-100 dark:hover:text-gray-900 dark:hover:border-gray-100 hover:-translate-y-px active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60"
+				title={followUp}
+				on:click={() => onClick(followUp)}
+				aria-label={$i18n.t('Follow up: {{question}}', { question: followUp })}
+			>
+				<span class="line-clamp-3">{followUp}</span>
+			</button>
 		{/each}
 	</div>
 </div>
