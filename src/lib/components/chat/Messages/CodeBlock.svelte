@@ -435,7 +435,7 @@
 
 <div>
 	<div
-		class="relative {className} flex flex-col rounded-2xl border border-gray-100/30 dark:border-gray-850/30 my-0.5 overflow-clip"
+		class="relative {className} flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 my-4 shadow-xs overflow-clip"
 		dir="ltr"
 	>
 		{#if ['mermaid', 'vega', 'vega-lite'].includes(lang)}
@@ -459,7 +459,7 @@
 			{/if}
 		{:else}
 			<div
-				class="sticky {stickyButtonsClassName} left-0 right-0 py-1.5 px-3.5 gap-2 flex items-center justify-end w-full z-10 text-xs text-black dark:text-white bg-white dark:bg-black"
+				class="sticky {stickyButtonsClassName} left-0 right-0 py-1.5 px-3.5 gap-2 flex items-center justify-end w-full z-10 text-xs text-gray-400 bg-[#262624]"
 			>
 				<div class="flex-1 truncate">
 					<Tooltip content={lang} placement="top-start">
@@ -472,7 +472,7 @@
 				<div class="flex items-center gap-0.5 shrink-0">
 					{#if isDiff && edit}
 						<button
-							class="bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+							class="bg-none border-none transition rounded-md px-1.5 py-0.5 hover:bg-white/10 hover:text-gray-100"
 							aria-pressed={editingDiff}
 							on:click={() => {
 								editingDiff = !editingDiff;
@@ -483,7 +483,7 @@
 						</button>
 					{/if}
 					<button
-						class="flex gap-1 items-center bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+						class="flex gap-1 items-center bg-none border-none transition rounded-md px-1.5 py-0.5 hover:bg-white/10 hover:text-gray-100"
 						on:click={collapseCodeBlock}
 					>
 						<div class=" -translate-y-[0.5px]">
@@ -498,13 +498,13 @@
 					{#if ($config?.features?.enable_code_execution ?? true) && (lang.toLowerCase() === 'python' || lang.toLowerCase() === 'py' || (lang === '' && checkPythonCode(code)))}
 						{#if executing}
 							<div
-								class="run-code-button bg-none border-none p-0.5 cursor-not-allowed bg-white dark:bg-black"
+								class="run-code-button bg-none border-none p-0.5 cursor-not-allowed hover:bg-white/10 hover:text-gray-100"
 							>
 								{$i18n.t('Running')}
 							</div>
 						{:else if run}
 							<button
-								class="flex gap-1 items-center run-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+								class="flex gap-1 items-center run-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 hover:bg-white/10 hover:text-gray-100"
 								on:click={async () => {
 									code = _code;
 									await tick();
@@ -520,7 +520,7 @@
 
 					{#if save}
 						<button
-							class="save-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+							class="save-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 hover:bg-white/10 hover:text-gray-100"
 							on:click={saveCode}
 						>
 							{saved ? $i18n.t('Saved') : $i18n.t('Save')}
@@ -528,13 +528,13 @@
 					{/if}
 
 					<button
-						class="copy-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+						class="copy-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 hover:bg-white/10 hover:text-gray-100"
 						on:click={copyCode}>{copied ? $i18n.t('Copied') : $i18n.t('Copy')}</button
 					>
 
 					{#if preview && ['html', 'svg'].includes(lang)}
 						<button
-							class="flex gap-1 items-center run-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+							class="flex gap-1 items-center run-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 hover:bg-white/10 hover:text-gray-100"
 							on:click={previewCode}
 						>
 							<div>
@@ -552,7 +552,7 @@
 						? ''
 						: 'rounded-b-2xl'} overflow-hidden"
 			>
-				<div class=" pt-6.5 bg-white dark:bg-black"></div>
+				<div class=" pt-6.5 bg-[#262624]"></div>
 
 				{#if !collapsed}
 					{#if isDiff && !(edit && editingDiff)}
@@ -571,7 +571,7 @@
 						/>
 					{:else}
 						<pre
-							class=" hljs p-4 px-5 overflow-x-auto"
+							class=" hljs bg-[#262624]! p-4 px-5 overflow-x-auto"
 							style="border-top-left-radius: 0px; border-top-right-radius: 0px; {(executing ||
 								stdout ||
 								stderr ||
@@ -586,7 +586,7 @@
 					{/if}
 				{:else}
 					<div
-						class="bg-white dark:bg-black dark:text-white rounded-b-2xl! pt-1 pb-2 px-4 flex flex-col gap-2 text-xs"
+						class="bg-[#262624] text-gray-300 rounded-b-2xl! pt-1 pb-2 px-4 flex flex-col gap-2 text-xs"
 					>
 						<span class="text-gray-500 italic">
 							{$i18n.t('{{COUNT}} hidden lines', {
