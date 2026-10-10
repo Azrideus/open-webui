@@ -31,7 +31,7 @@ ARG UID
 ARG GID
 
 # Set Node.js options (heap limit Allocation failed - JavaScript heap out of memory)
-ENV NODE_OPTIONS="--max-old-space-size=8192"
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ WORKDIR /app
 RUN apk add --no-cache git
 
 COPY package.json package-lock.json ./
-RUN npm ci --force
+RUN --mount=type=cache,target=/root/.npm npm ci --force
 
 COPY . .
 ENV APP_BUILD_HASH=${BUILD_HASH}
