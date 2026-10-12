@@ -1705,9 +1705,14 @@
 			>
 				<div class="relative">
 					<!-- Progress bars float just above the input with no backdrop (no reserved space, no layout shift); only their labels get a background -->
-					{#if history?.messages?.[history?.currentId]?.progress?.length}
+					<!-- Tool call bars (tool_call_id) show in the live status area instead -->
+					{#if history?.messages?.[history?.currentId]?.progress?.some((bar: { tool_call_id?: string }) => !bar?.tool_call_id)}
 						<div class="absolute bottom-0 inset-x-0 z-20 px-1 pointer-events-none">
-							<ProgressBars bars={history.messages[history.currentId].progress} />
+							<ProgressBars
+								bars={history.messages[history.currentId].progress.filter(
+									(bar: { tool_call_id?: string }) => !bar?.tool_call_id
+								)}
+							/>
 						</div>
 					{/if}
 					{#if typingUsers.length > 0}

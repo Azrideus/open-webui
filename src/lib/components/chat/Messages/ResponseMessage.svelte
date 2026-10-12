@@ -932,7 +932,11 @@
 
 							<!-- Live status renders below the content too (was above it) -->
 							{#if model?.info?.meta?.capabilities?.status_updates ?? true}
-								<StatusHistory statusHistory={message?.statusHistory} />
+								<!-- Running tool calls' progress bars show in the live status area -->
+								<StatusHistory
+									statusHistory={message?.statusHistory}
+									toolBars={(message?.progress ?? []).filter((bar) => bar?.tool_call_id)}
+								/>
 							{/if}
 
 							<!-- Progress bars moved to an overlay above the chat input (MessageInput.svelte) -->
