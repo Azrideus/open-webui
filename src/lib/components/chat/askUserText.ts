@@ -11,5 +11,5 @@ export const plainText = (text: string | null | undefined) =>
 		.replace(/(^|\W)_(?!\s)(.+?)_(?!\w)/g, '$1$2') // _italic_ (keeps snake_case)
 		.replace(/~~(.+?)~~/g, '$1') // strikethrough
 		.replace(/`+([^`]+)`+/g, '$1') // inline code
-		.replace(/\n{2,}/g, '\n')
+		.replace(/\n{3,}/g, '\n\n') // keep paragraph breaks, squash blanks left by stripped rules
 		.trim();

@@ -190,7 +190,10 @@
 									</div>
 								{/if}
 							</div>
-							<div class="mt-0.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+							<!-- whitespace-pre-line: keep the question's line breaks instead of collapsing them -->
+							<div
+								class="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-gray-600 dark:text-gray-300"
+							>
 								{plainText(question.question)}
 							</div>
 						</div>

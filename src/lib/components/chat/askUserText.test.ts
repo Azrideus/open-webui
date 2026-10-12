@@ -8,6 +8,11 @@ describe('plainText', () => {
 		);
 	});
 
+	// line/paragraph breaks are kept so the card can render them (whitespace-pre-line)
+	it('keeps line and paragraph breaks', () => {
+		expect(plainText('a\nb\n\nc\n\n\n\nd')).toBe('a\nb\n\nc\n\nd');
+	});
+
 	it('leaves snake_case, math and empty input alone', () => {
 		expect(plainText('use my_var_name, 2 * 3 * 4')).toBe('use my_var_name, 2 * 3 * 4');
 		expect(plainText(undefined)).toBe('');
