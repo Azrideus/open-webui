@@ -10,8 +10,11 @@
 	export let expand = false;
 	// Progress bars of tool calls: running ones show above the live label, finished ones move into the expandable history.
 	export let toolBars = [];
-	// While the message streams, one tool bar's height stays reserved above the label to minimize layout shift.
+	// While the message streams, room for 3 tool rows stays reserved above the label to minimize layout shift.
 	export let active = false;
+
+	// Measured height of the tool slot; the outer box animates to it so the live label glides instead of jumping.
+	let slotHeight = 0;
 
 	$: showStatus = history && history.length > 0 && status?.hidden !== true;
 	$: hasRunningTools = toolBars.some((bar) => !isDone(bar));
@@ -34,7 +37,23 @@
 			(b) => !(b.status_idx >= 0 && b.status_idx <= history.length)
 		))
 			out.push({ bar });
-		return out;
+		// Collapse consecutive finished tools with the same label, rounded runtime and outcome into "N×".
+		const merged = [];
+		for (const item of out) {
+			const prev = merged.at(-1);
+			if (
+				item.bar &&
+				prev?.bar &&
+				(prev.bar.label ?? prev.bar.id) === (item.bar.label ?? item.bar.id) &&
+				elapsed(prev.bar) === elapsed(item.bar) &&
+				!!prev.bar.error === !!item.bar.error
+			) {
+				prev.count += 1;
+			} else {
+				merged.push(item.bar ? { ...item, count: 1 } : item);
+			}
+		}
+		return merged;
 	})();
 
 	let showHistory = true;
@@ -58,22 +77,28 @@
 </script>
 
 {#if showStatus || hasRunningTools || active}
-	<div class="text-[0.9375rem] pt-2 pb-2 flex flex-col w-full">
-		<!-- Running tool calls, above the live label; reserves one bar (min-h-10) while streaming -->
-		{#if active || hasRunningTools}
-			<div class={active ? 'min-h-10' : ''}>
-				<!-- Running tools without progress: spinner before the name -->
-				{#each spinnerTools as bar (bar.id)}
-					<div class="flex items-center gap-2 py-0.5 text-sm">
-						<Spinner className="size-3.5 text-gray-500 dark:text-gray-400" />
-						<span class="line-clamp-1 shimmer">{bar.label ?? bar.id}</span>
-					</div>
-				{/each}
-				{#if runningTools.length > 0}
-					<ProgressBars bars={runningTools} />
+	<div class="text-[0.9375rem] pt-1 pb-0.5 flex flex-col w-full">
+		<!-- Running tool calls above the live label, top-aligned in a slot that reserves 3 rows (min-h-[4.5rem])
+		     while streaming and grows only for more. The outer box animates its height to the measured slot. -->
+		<div
+			class="overflow-hidden transition-[height] duration-300 ease-out motion-reduce:transition-none"
+			style="height: {slotHeight}px"
+		>
+			<div bind:clientHeight={slotHeight} class={active ? 'min-h-[4.5rem]' : ''}>
+				{#if active || hasRunningTools}
+					<!-- Running tools without progress: spinner before the name -->
+					{#each spinnerTools as bar (bar.id)}
+						<div class="flex items-center gap-2 py-0.5 text-sm">
+							<Spinner className="size-3.5 text-gray-500 dark:text-gray-400" />
+							<span class="line-clamp-1 shimmer">{bar.label ?? bar.id}</span>
+						</div>
+					{/each}
+					{#if runningTools.length > 0}
+						<ProgressBars bars={runningTools} className="" />
+					{/if}
 				{/if}
 			</div>
-		{/if}
+		</div>
 
 		{#if showStatus}
 			<button
@@ -120,7 +145,10 @@
 											: ''}"
 									>
 										<span class="line-clamp-1"
-											>{item.bar.label ?? item.bar.id}{item.bar.error ? ' ✗' : ' ✓'}</span
+											>{item.count > 1 ? `${item.count}× ` : ''}{item.bar.label ?? item.bar.id}{item
+												.bar.error
+												? ' ✗'
+												: ' ✓'}</span
 										>
 										<span class="tabular-nums text-gray-500 dark:text-gray-400 shrink-0"
 											>{elapsed(item.bar)}</span

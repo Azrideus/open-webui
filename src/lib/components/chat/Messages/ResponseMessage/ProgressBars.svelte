@@ -22,6 +22,8 @@
 
 	// Progress bars streamed via `chat:message:progress` events, updated in place by id.
 	export let bars = [];
+	// Outer padding; StatusHistory's tool slot passes '' to stay compact.
+	export let className = 'py-1';
 
 	// Ticks every 500ms: drives the elapsed time and removes finished bars promptly after LINGER_MS.
 	let now = Date.now();
@@ -47,7 +49,7 @@
 
 {#if visibleBars.length}
 	<!-- Fade only when the last bar leaves (whole wrapper); bars removed while others remain go instantly -->
-	<div class="flex flex-col gap-2 py-1 text-sm" out:fade={{ duration: 400 }}>
+	<div class="flex flex-col gap-2 {className} text-sm" out:fade={{ duration: 400 }}>
 		{#each visibleBars as bar (bar.id)}
 			{@const done = isDone(bar)}
 			{@const indeterminate = bar?.value == null && !done}
