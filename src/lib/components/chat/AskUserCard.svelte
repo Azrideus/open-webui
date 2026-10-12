@@ -199,19 +199,21 @@
 						</div>
 
 						<div class="space-y-1">
-							<div class="space-y-0.5">
+							<!-- Gebra: more room between the bordered option buttons -->
+							<div class="space-y-1.5">
 								{#each question.options || [] as option, optionIndex}
+									<!-- Gebra: bigger, bordered option buttons for visibility -->
 									<button
 										type="button"
-										class="group flex w-full min-w-0 items-baseline gap-2 rounded-lg py-1.5 text-left transition-colors {isSelectedOption(
+										class="group flex w-full min-w-0 items-baseline gap-2 rounded-xl border px-3.5 py-2.5 text-left shadow-xs transition-colors {isSelectedOption(
 											question,
 											optionIndex
 										)
-											? 'text-gray-950 dark:text-white'
-											: 'text-gray-700 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white'}"
+											? 'border-gray-900 bg-white text-gray-950 dark:border-gray-100 dark:bg-gray-850 dark:text-white'
+											: 'border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 dark:border-gray-700 dark:bg-gray-850 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white'}"
 										on:click={() => selectOption(question, option, optionIndex)}
 									>
-										<span class="min-w-0 shrink-0 text-xs">{plainText(option.label)}</span>
+										<span class="min-w-0 shrink-0 text-sm font-medium">{plainText(option.label)}</span>
 										<!-- Gebra: label-only options (model questions) have no description and no "Recommended" badge -->
 										{#if option.description}
 											<Tooltip
