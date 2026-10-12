@@ -68,6 +68,7 @@
 		getUsageTokenCount,
 		isRasterImageContentType
 	} from '$lib/utils';
+	import { extractArtifactSvgs, getToolResults } from '$lib/utils/artifactSvg';
 	import { AudioQueue } from '$lib/utils/audio';
 	import { RealtimeCall, getBridgeTurnState, type BridgeSubmission } from '$lib/utils/realtime';
 	import { createTemporaryChatId, isTemporaryChatId } from '$lib/utils/chatId';
@@ -2402,8 +2403,19 @@
 	const getContents = () => {
 		const messages = history ? createMessagesList(history, history.currentId) : [];
 		let contents = [];
+		let specialSvgCount = 0;
 		messages.forEach((message) => {
 			if (message?.role !== 'user') {
+				// Any <svg> from a tool result, or <svg data-artifact> from model text, becomes an artifact
+				const specialSvgs = new Set([
+					...extractArtifactSvgs(getToolResults(message), true),
+					...extractArtifactSvgs([message?.content ?? '', message?.output ?? []])
+				]);
+				for (const svg of specialSvgs) {
+					contents = [...contents, { type: 'svg', content: svg }];
+				}
+				specialSvgCount += specialSvgs.size;
+
 				const messageContent =
 					getOutputText(message?.output) || removeAllDetails(message?.content ?? '');
 				if (!messageContent.trim()) {
@@ -2443,6 +2455,7 @@
 				} else {
 					// Check for SVG content
 					for (const block of codeBlocks) {
+						if (block.code.includes('data-artifact')) continue; // already added above
 						if (block.lang === 'svg' || (block.lang === 'xml' && block.code.includes('<svg'))) {
 							contents = [...contents, { type: 'svg', content: block.code }];
 						}
@@ -2452,7 +2465,16 @@
 		});
 
 		artifactContents.set(contents);
+
+		// Tool results never pass through ContentRenderer's auto-open, so open the pane here
+		const hasNewSpecialSvg = specialSvgCount > lastSpecialSvgCount;
+		lastSpecialSvgCount = specialSvgCount;
+		if (hasNewSpecialSvg && ($settings?.detectArtifacts ?? true) && !$mobile && $chatId) {
+			showControls.set(true);
+			showArtifacts.set(true);
+		}
 	};
+	let lastSpecialSvgCount = 0;
 
 	//////////////////////////
 	// Web functions
