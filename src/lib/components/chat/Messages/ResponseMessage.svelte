@@ -64,7 +64,6 @@
 	import { flyAndScale } from '$lib/utils/transitions';
 	import RegenerateMenu from './ResponseMessage/RegenerateMenu.svelte';
 	import StatusHistory from './ResponseMessage/StatusHistory.svelte';
-	import ProgressBars from './ResponseMessage/ProgressBars.svelte';
 	import FullHeightIframe from '$lib/components/common/FullHeightIframe.svelte';
 	import OutputEditView from './OutputEditView.svelte';
 	import { getOutputText, replaceOutputMessageText, type OutputItem } from './structuredOutput';
@@ -936,10 +935,7 @@
 								<StatusHistory statusHistory={message?.statusHistory} />
 							{/if}
 
-							<!-- Progress bars render below the content (was above it) -->
-							{#if message?.progress?.length}
-								<ProgressBars bars={message.progress} />
-							{/if}
+							<!-- Progress bars moved to an overlay above the chat input (MessageInput.svelte) -->
 
 							{#if !message.done && !message.error && (hasResponseContent || !hasVisibleStatus)}
 								<div class="text-[0.9375rem] leading-relaxed">

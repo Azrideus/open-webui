@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
 	import { marked, type Token } from 'marked';
 
-	type AlertType = 'NOTE' | 'TIP' | 'IMPORTANT' | 'WARNING' | 'CAUTION' | 'ERROR' | 'CUSTOM';
+	type AlertType = 'NOTE' | 'TIP' | 'IMPORTANT' | 'WARNING' | 'CAUTION' | 'ERROR' | 'SUCCESS' | 'CUSTOM';
 
 	interface AlertTheme {
 		border: string;
@@ -47,6 +47,12 @@
 			border: 'border-red-600',
 			text: 'text-red-600',
 			icon: XMark
+		},
+		// Green success box: > [!SUCCESS]
+		SUCCESS: {
+			border: 'border-green-600',
+			text: 'text-green-600',
+			icon: CheckCircle
 		}
 	};
 
@@ -68,7 +74,7 @@
 			};
 		}
 
-		const regExpStr = `^(?:\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|ERROR)\\])\\s*?\n*`;
+		const regExpStr = `^(?:\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|ERROR|SUCCESS)\\])\\s*?\n*`;
 		const regExp = new RegExp(regExpStr, 'i');
 		const matches = token.text?.match(regExp);
 
@@ -93,6 +99,7 @@
 	import Bolt from '$lib/components/icons/Bolt.svelte';
 	import ArrowRightCircle from '$lib/components/icons/ArrowRightCircle.svelte';
 	import XMark from '$lib/components/icons/XMark.svelte';
+	import CheckCircle from '$lib/components/icons/CheckCircle.svelte';
 	import MarkdownTokens from './MarkdownTokens.svelte';
 	import type { ComponentType } from 'svelte';
 
@@ -126,6 +133,9 @@ Renders the following Markdown as alerts:
 
 > [!ERROR]
 > Example error
+
+> [!SUCCESS]
+> Example success
 
 > [!CUSTOM:#ff8800: My custom title]
 > Example custom box (any CSS color, any title)

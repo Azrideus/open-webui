@@ -122,6 +122,7 @@
 	import Expand from '../icons/Expand.svelte';
 	import QueuedMessageItem from './MessageInput/QueuedMessageItem.svelte';
 	import TaskList from './Messages/ResponseMessage/TaskList.svelte';
+	import ProgressBars from './Messages/ResponseMessage/ProgressBars.svelte';
 
 	const i18n: any = getContext('i18n');
 
@@ -1746,6 +1747,14 @@
 						</div>
 					{/if}
 				</div>
+				<!-- Progress bar slot above the input: always reserves one bar's height in an open chat so bars appearing/disappearing don't shift or overlap anything -->
+				{#if history?.currentId}
+					<div class="min-h-10 px-1">
+						{#if history.messages[history.currentId]?.progress?.length}
+							<ProgressBars bars={history.messages[history.currentId].progress} />
+						{/if}
+					</div>
+				{/if}
 			</div>
 		</div>
 
