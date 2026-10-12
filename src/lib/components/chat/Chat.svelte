@@ -1318,6 +1318,15 @@
 		typingUsers = typingUsers.filter((user) => user.id !== id);
 	};
 
+	// Hide the current message's progress bars (on STOP or socket disconnect): a stopped/lost stream won't finish them.
+	const hideProgressBars = () => {
+		const message = history?.messages?.[history.currentId];
+		if (message?.progress?.length) {
+			message.progress = [];
+			history = history;
+		}
+	};
+
 	const clearTyping = () => {
 		emitTyping(false);
 		Object.values(typingUsersTimeout).forEach(clearTimeout);
@@ -1845,6 +1854,7 @@
 		$socket?.on('connect', handleSocketConnect);
 		$socket?.on('disconnect', clearTyping);
 		$socket?.on('disconnect', cancelBrowserInteractions);
+		$socket?.on('disconnect', hideProgressBars);
 
 		$audioQueue?.destroy();
 
@@ -1952,6 +1962,7 @@
 				$socket?.off('connect', handleSocketConnect);
 				$socket?.off('disconnect', clearTyping);
 				$socket?.off('disconnect', cancelBrowserInteractions);
+				$socket?.off('disconnect', hideProgressBars);
 				dismissContextCompactionToast();
 				audioQueueInstance?.destroy();
 				audioQueue.set(null);
@@ -4310,6 +4321,7 @@
 		if (responseMessage && (responseMessage.user_id ?? chat?.user_id ?? $user?.id) !== $user?.id)
 			return;
 		cancelBrowserInteractions();
+		hideProgressBars();
 		if (bridge?.connected && responseMessage) responseMessage.bridgeStopping = true;
 		const hasTaskIds = (taskIds?.length ?? 0) > 0;
 		const hasPendingAssistantResponse =
