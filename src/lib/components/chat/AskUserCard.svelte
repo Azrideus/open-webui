@@ -213,7 +213,8 @@
 											: 'border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-950 dark:border-gray-700 dark:bg-gray-850 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white'}"
 										on:click={() => selectOption(question, option, optionIndex)}
 									>
-										<span class="min-w-0 shrink-0 text-sm font-medium">{plainText(option.label)}</span>
+										<!-- Gebra: let long labels shrink and wrap inside the button instead of overflowing -->
+										<span class="min-w-0 whitespace-normal break-words text-sm font-medium">{plainText(option.label)}</span>
 										<!-- Gebra: label-only options (model questions) have no description and no "Recommended" badge -->
 										{#if option.description}
 											<Tooltip
