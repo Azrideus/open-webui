@@ -4,6 +4,7 @@
 	import type { Writable } from 'svelte/store';
 	import type { i18n as i18nType } from 'i18next';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
+	import { plainText } from './askUserText';
 
 	const i18n: Writable<i18nType> = getContext('i18n');
 	const dispatch = createEventDispatcher();
@@ -179,7 +180,7 @@
 						<div>
 							<div class="flex items-center justify-between gap-3">
 								<div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-									{question.header}
+									{plainText(question.header)}
 								</div>
 								{#if questions.length > 1}
 									<div
@@ -190,7 +191,7 @@
 								{/if}
 							</div>
 							<div class="mt-0.5 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
-								{question.question}
+								{plainText(question.question)}
 							</div>
 						</div>
 
@@ -207,17 +208,17 @@
 											: 'text-gray-700 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white'}"
 										on:click={() => selectOption(question, option, optionIndex)}
 									>
-										<span class="min-w-0 shrink-0 text-xs">{option.label}</span>
+										<span class="min-w-0 shrink-0 text-xs">{plainText(option.label)}</span>
 										<Tooltip
 											as="span"
 											className="min-w-0 flex-1"
-											content={option.description}
+											content={plainText(option.description)}
 											placement="top-start"
 										>
 											<span
 												class="block truncate text-xs leading-relaxed text-gray-500 transition-colors group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300"
 											>
-												{option.description}
+												{plainText(option.description)}
 											</span>
 										</Tooltip>
 										{#if optionIndex === 0}
