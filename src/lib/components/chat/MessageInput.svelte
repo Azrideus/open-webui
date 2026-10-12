@@ -1704,6 +1704,12 @@
 					: 'max-w-[58rem]'} w-full"
 			>
 				<div class="relative">
+					<!-- Progress bars float just above the input with no backdrop (no reserved space, no layout shift); only their labels get a background -->
+					{#if history?.messages?.[history?.currentId]?.progress?.length}
+						<div class="absolute bottom-0 inset-x-0 z-20 px-1 pointer-events-none">
+							<ProgressBars bars={history.messages[history.currentId].progress} />
+						</div>
+					{/if}
 					{#if typingUsers.length > 0}
 						<div
 							class="absolute -top-7 inset-x-0 pointer-events-none select-none bg-linear-to-t from-white dark:from-gray-900 to-transparent pb-2.5"
@@ -1747,14 +1753,6 @@
 						</div>
 					{/if}
 				</div>
-				<!-- Progress bar slot above the input: always reserves one bar's height in an open chat so bars appearing/disappearing don't shift or overlap anything -->
-				{#if history?.currentId}
-					<div class="min-h-10 px-1">
-						{#if history.messages[history.currentId]?.progress?.length}
-							<ProgressBars bars={history.messages[history.currentId].progress} />
-						{/if}
-					</div>
-				{/if}
 			</div>
 		</div>
 

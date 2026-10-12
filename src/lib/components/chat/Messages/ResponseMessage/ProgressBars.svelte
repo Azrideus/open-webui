@@ -22,11 +22,16 @@
 						? 'text-gray-500 dark:text-gray-400'
 						: ''} {bar?.error ? 'text-red-500' : ''}"
 				>
-					<span class="line-clamp-1 {done ? '' : 'shimmer'}">
-						{bar?.label ?? bar.id}{done ? (bar?.error ? ' ✗' : ' ✓') : ''}
+					<!-- Background only behind the label text (outer span, since shimmer clips its own background to the text) -->
+					<span class="min-w-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900">
+						<span class="line-clamp-1 {done ? '' : 'shimmer'}">
+							{bar?.label ?? bar.id}{done ? (bar?.error ? ' ✗' : ' ✓') : ''}
+						</span>
 					</span>
 					{#if !indeterminate}
-						<span class="tabular-nums shrink-0">{Math.round(percent(bar))}%</span>
+						<span class="tabular-nums shrink-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900"
+							>{Math.round(percent(bar))}%</span
+						>
 					{/if}
 				</div>
 				<div
