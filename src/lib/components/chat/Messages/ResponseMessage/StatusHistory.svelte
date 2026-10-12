@@ -3,6 +3,7 @@
 	const i18n = getContext('i18n');
 
 	import StatusItem from './StatusHistory/StatusItem.svelte';
+	import Spinner from '$lib/components/common/Spinner.svelte';
 	import ProgressBars, { isDone, elapsed } from './ProgressBars.svelte';
 	import equal from 'fast-deep-equal';
 	export let statusHistory = [];
@@ -15,9 +16,11 @@
 	$: showStatus = history && history.length > 0 && status?.hidden !== true;
 	$: hasRunningTools = toolBars.some((bar) => !isDone(bar));
 	// Top list: drop keep_bar and finished errors so only running bars (plus the brief finish linger) stay above the label
+	// Only tools that reported progress (value set) get a bar; the rest show a spinner, no indeterminate bar.
 	$: runningTools = toolBars
-		.filter((bar) => !(isDone(bar) && bar?.error))
+		.filter((bar) => bar?.value != null && !(isDone(bar) && bar?.error))
 		.map((bar) => ({ ...bar, keep_bar: false }));
+	$: spinnerTools = toolBars.filter((bar) => bar?.value == null && !isDone(bar));
 	// Expanded history: statuses and finished tool calls as one list. A tool goes before the status at its
 	// `status_idx` (statuses seen when it started); tools without one go last.
 	$: items = (() => {
@@ -59,6 +62,13 @@
 		<!-- Running tool calls, above the live label; reserves one bar (min-h-10) while streaming -->
 		{#if active || hasRunningTools}
 			<div class={active ? 'min-h-10' : ''}>
+				<!-- Running tools without progress: spinner before the name -->
+				{#each spinnerTools as bar (bar.id)}
+					<div class="flex items-center gap-2 py-0.5 text-sm">
+						<Spinner className="size-3.5 text-gray-500 dark:text-gray-400" />
+						<span class="line-clamp-1 shimmer">{bar.label ?? bar.id}</span>
+					</div>
+				{/each}
 				{#if runningTools.length > 0}
 					<ProgressBars bars={runningTools} />
 				{/if}
