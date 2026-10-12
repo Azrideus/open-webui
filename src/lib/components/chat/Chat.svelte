@@ -1593,6 +1593,16 @@
 					if (shouldAutoScrollResponse()) {
 						scrollToBottom('smooth');
 					}
+				} else if (type === 'chat:message:progress') {
+					// Create or update one progress bar by id; fields merge into the existing bar.
+					const bars = message.progress ?? [];
+					const idx = bars.findIndex((bar) => bar.id === data?.id);
+					if (idx !== -1) {
+						bars[idx] = { ...bars[idx], ...data };
+					} else {
+						bars.push(data);
+					}
+					message.progress = bars;
 				} else if (type === 'chat:outlet') {
 					// Outlet filter ran on backend — sync in-memory state
 					const outletMessages = data.messages ?? [];

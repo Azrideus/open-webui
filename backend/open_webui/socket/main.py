@@ -1358,6 +1358,7 @@ async def get_event_emitter(request_info, update_db=True):
                 'chat:message:error',
                 'chat:tasks:cancel',
                 'chat:message:follow_ups',
+                'chat:message:progress',
             }:
                 shared_event = event_data
             elif event_type in {'chat:completion', 'response:completion'}:
@@ -1459,6 +1460,11 @@ async def get_event_emitter(request_info, update_db=True):
                         'followUpQuestion': event_data.get('data', {}).get('question') or '',
                     },
                     touch=False,
+                )
+
+            elif event_type == 'chat:message:progress':
+                await Chats.upsert_message_progress_by_id_and_message_id(
+                    chat_id, message_id, event_data.get('data') or {}
                 )
 
             elif event_type == 'files':

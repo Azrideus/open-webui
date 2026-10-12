@@ -1427,6 +1427,33 @@ class ChatTable:
         except Exception:
             return None
 
+    async def upsert_message_progress_by_id_and_message_id(
+        self, id: str, message_id: str, bar: dict
+    ) -> ChatModel | None:
+        """Create or update one progress bar (matched by its 'id') on a message."""
+        try:
+            bar = self._clean_null_bytes(bar)
+            async with self._chat_transaction(id) as (session, chat_item):
+                if chat_item is None:
+                    return None
+
+                chat = chat_item.chat or {}
+                message = chat.get('history', {}).get('messages', {}).get(message_id)
+                if message is not None:
+                    bars = message.setdefault('progress', [])
+                    existing = next((b for b in bars if b.get('id') == bar.get('id')), None)
+                    if existing is None:
+                        bars.append(bar)
+                    else:
+                        existing.update(bar)
+
+                    chat_item.chat = chat
+                    flag_modified(chat_item, 'chat')
+
+                return ChatModel.model_validate(chat_item)
+        except Exception:
+            return None
+
     async def add_message_files_by_id_and_message_id(
         self, id: str, message_id: str, files: list[dict]
     ) -> list[dict] | None:

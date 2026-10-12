@@ -64,6 +64,7 @@
 	import { flyAndScale } from '$lib/utils/transitions';
 	import RegenerateMenu from './ResponseMessage/RegenerateMenu.svelte';
 	import StatusHistory from './ResponseMessage/StatusHistory.svelte';
+	import ProgressBars from './ResponseMessage/ProgressBars.svelte';
 	import FullHeightIframe from '$lib/components/common/FullHeightIframe.svelte';
 	import OutputEditView from './OutputEditView.svelte';
 	import { getOutputText, replaceOutputMessageText, type OutputItem } from './structuredOutput';
@@ -83,6 +84,14 @@
 			description: string;
 			urls?: string[];
 			query?: string;
+		}[];
+		progress?: {
+			id: string;
+			label?: string;
+			value?: number;
+			total?: number;
+			done?: boolean;
+			error?: boolean;
 		}[];
 		status?: {
 			done: boolean;
@@ -729,6 +738,10 @@
 					<div>
 						{#if model?.info?.meta?.capabilities?.status_updates ?? true}
 							<StatusHistory statusHistory={message?.statusHistory} />
+						{/if}
+
+						{#if message?.progress?.length}
+							<ProgressBars bars={message.progress} />
 						{/if}
 
 						{#if message?.files && message.files?.filter( (f) => ['image', 'file'].includes(f.type) ).length > 0}
