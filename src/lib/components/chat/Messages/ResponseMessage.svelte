@@ -736,14 +736,6 @@
 			<div>
 				<div class="chat-{message.role} w-full min-w-full">
 					<div>
-						{#if model?.info?.meta?.capabilities?.status_updates ?? true}
-							<StatusHistory statusHistory={message?.statusHistory} />
-						{/if}
-
-						{#if message?.progress?.length}
-							<ProgressBars bars={message.progress} />
-						{/if}
-
 						{#if message?.files && message.files?.filter( (f) => ['image', 'file'].includes(f.type) ).length > 0}
 							<div
 								class="my-1 w-full flex overflow-x-auto gap-2 flex-wrap"
@@ -937,6 +929,16 @@
 										updateChat();
 									}}
 								/>
+							{/if}
+
+							<!-- Live status renders below the content too (was above it) -->
+							{#if model?.info?.meta?.capabilities?.status_updates ?? true}
+								<StatusHistory statusHistory={message?.statusHistory} />
+							{/if}
+
+							<!-- Progress bars render below the content (was above it) -->
+							{#if message?.progress?.length}
+								<ProgressBars bars={message.progress} />
 							{/if}
 
 							{#if !message.done && !message.error && (hasResponseContent || !hasVisibleStatus)}
