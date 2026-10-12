@@ -690,6 +690,41 @@
 			interaction && resolveBrowserInteraction(interaction, { status: 'cancelled', answers: {} })
 	}))(browserInteraction);
 
+	// Gebra: questions the model streamed as `chat:message:questions` on the current, finished reply.
+	// AskUserCard asks them one by one; the answers go back as one JSON user message so the
+	// paused pipeline resumes through the normal reply path (no socket callback needed).
+	let dismissedQuestionsId: string | null = null;
+	$: messageQuestionsPrompt = (() => {
+		const m = history.currentId ? history.messages[history.currentId] : null;
+		if (!m || m.role !== 'assistant' || !m.done || !m.questions?.length) return null;
+		if (dismissedQuestionsId === m.id) return null;
+		return {
+			id: `questions:${m.id}`,
+			show: true,
+			allowOther: true,
+			timeoutMs: null,
+			questions: m.questions.map((q: any) => ({
+				id: q.id,
+				header: q.header ?? '',
+				question: q.question,
+				allow_other: true,
+				options: (q.options ?? []).map((label: string) => ({ label, description: '' }))
+			})),
+			onConfirm: (value: any) => {
+				const answers = m.questions.map((q: any) => {
+					const a = value?.answers?.[q.id];
+					return a?.type === 'option' ? a.label : (a?.text ?? '');
+				});
+				const reply = { questions: m.questions.map((q: any) => q.question), answers };
+				// Fenced so the chat renders it as a code block
+				submitMessage(m.id, '```json\n' + JSON.stringify(reply, null, 2) + '\n```');
+			},
+			onCancel: () => {
+				dismissedQuestionsId = m.id;
+			}
+		};
+	})();
+
 	const mergeChatVariableSchemas = (modelIds = [], availableModels = []) => {
 		const byKey: Record<string, any> = {};
 		const conflicts: any[] = [];
@@ -1597,6 +1632,9 @@
 							await processNextInQueue(event.chat_id);
 						}
 					}
+				} else if (type === 'chat:message:questions') {
+					// Gebra: questions for the step-by-step card above the input (see messageQuestionsPrompt)
+					message.questions = data.questions ?? [];
 				} else if (type === 'chat:message:follow_ups') {
 					message.followUps = data.follow_ups;
 					message.followUpQuestion = data.question ?? '';
@@ -5126,7 +5164,7 @@
 										{onUpdate}
 										messageQueue={$chatRequestQueues[$chatId] ?? []}
 										{chatTasks}
-										askUser={savedAskUserPrompt ?? socketAskUserPrompt}
+										askUser={savedAskUserPrompt ?? messageQuestionsPrompt ?? socketAskUserPrompt}
 										onQueueSendNow={sendQueuedMessageNow}
 										onQueueEdit={editQueuedMessage}
 										onQueueDelete={deleteQueuedMessage}
@@ -5221,7 +5259,7 @@
 										{onUpdate}
 										messageQueue={$chatRequestQueues[$chatId] ?? []}
 										{chatTasks}
-										askUser={savedAskUserPrompt ?? socketAskUserPrompt}
+										askUser={savedAskUserPrompt ?? messageQuestionsPrompt ?? socketAskUserPrompt}
 										onQueueSendNow={sendQueuedMessageNow}
 										onQueueEdit={editQueuedMessage}
 										onQueueDelete={deleteQueuedMessage}
@@ -5274,7 +5312,7 @@
 									{onUpload}
 									{onUpdate}
 									messageQueue={$chatRequestQueues[$chatId] ?? []}
-									askUser={savedAskUserPrompt ?? socketAskUserPrompt}
+									askUser={savedAskUserPrompt ?? messageQuestionsPrompt ?? socketAskUserPrompt}
 									onQueueSendNow={sendQueuedMessageNow}
 									onQueueEdit={editQueuedMessage}
 									onQueueDelete={deleteQueuedMessage}

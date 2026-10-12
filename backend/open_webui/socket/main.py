@@ -1359,6 +1359,7 @@ async def get_event_emitter(request_info, update_db=True):
                 'chat:tasks:cancel',
                 'chat:message:follow_ups',
                 'chat:message:progress',
+                'chat:message:questions',  # Gebra: multi-question card sent by the model
             }:
                 shared_event = event_data
             elif event_type in {'chat:completion', 'response:completion'}:
@@ -1459,6 +1460,15 @@ async def get_event_emitter(request_info, update_db=True):
                         'followUps': event_data.get('data', {}).get('follow_ups', []),
                         'followUpQuestion': event_data.get('data', {}).get('question') or '',
                     },
+                    touch=False,
+                )
+
+            elif event_type == 'chat:message:questions':
+                # Gebra: keep the model's questions on the message so a reload still shows the card
+                await Chats.upsert_message_to_chat_by_id_and_message_id(
+                    chat_id,
+                    message_id,
+                    {'questions': event_data.get('data', {}).get('questions', [])},
                     touch=False,
                 )
 

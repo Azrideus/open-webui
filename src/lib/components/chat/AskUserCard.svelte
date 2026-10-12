@@ -212,19 +212,22 @@
 										on:click={() => selectOption(question, option, optionIndex)}
 									>
 										<span class="min-w-0 shrink-0 text-xs">{plainText(option.label)}</span>
-										<Tooltip
-											as="span"
-											className="min-w-0 flex-1"
-											content={plainText(option.description)}
-											placement="top-start"
-										>
-											<span
-												class="block truncate text-xs leading-relaxed text-gray-500 transition-colors group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300"
+										<!-- Gebra: label-only options (model questions) have no description and no "Recommended" badge -->
+										{#if option.description}
+											<Tooltip
+												as="span"
+												className="min-w-0 flex-1"
+												content={plainText(option.description)}
+												placement="top-start"
 											>
-												{plainText(option.description)}
-											</span>
-										</Tooltip>
-										{#if optionIndex === 0}
+												<span
+													class="block truncate text-xs leading-relaxed text-gray-500 transition-colors group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300"
+												>
+													{plainText(option.description)}
+												</span>
+											</Tooltip>
+										{/if}
+										{#if optionIndex === 0 && option.description}
 											<span
 												class="shrink-0 rounded-full bg-gray-200/70 px-1.5 py-0.5 text-[0.625rem] text-gray-500 dark:bg-white/[0.08] dark:text-gray-400"
 											>
