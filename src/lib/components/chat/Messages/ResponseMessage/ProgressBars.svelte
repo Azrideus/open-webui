@@ -12,10 +12,10 @@
 	// Progress bars streamed via `chat:message:progress` events, updated in place by id.
 	export let bars = [];
 
-	// Ticks once a second so running bars' elapsed time updates.
+	// Ticks every 500ms: drives the elapsed time and removes finished bars promptly after LINGER_MS.
 	let now = Date.now();
 	onMount(() => {
-		const timer = setInterval(() => (now = Date.now()), 1000);
+		const timer = setInterval(() => (now = Date.now()), 500);
 		return () => clearInterval(timer);
 	});
 
@@ -33,8 +33,8 @@
 		isDone(bar) ? 100 : Math.max(0, ((bar?.value ?? 0) / (bar?.total || 100)) * 100);
 
 	// Finished bars disappear unless the sender set `keep_bar`; failed bars stay so errors stay visible.
-	// A finished bar lingers >=1s after `ended_at` (next tick) so its fill can animate up to 100% before fading out.
-	const LINGER_MS = 1000;
+	// A finished bar lingers 0.5s after `ended_at` so its fill can animate up to 100% before it goes.
+	const LINGER_MS = 500;
 	$: visibleBars = bars.filter(
 		(bar) =>
 			!isDone(bar) ||
@@ -45,12 +45,12 @@
 </script>
 
 {#if visibleBars.length}
-	<div class="flex flex-col gap-2 py-1 text-sm">
+	<!-- Fade only when the last bar leaves (whole wrapper); bars removed while others remain go instantly -->
+	<div class="flex flex-col gap-2 py-1 text-sm" out:fade={{ duration: 400 }}>
 		{#each visibleBars as bar (bar.id)}
 			{@const done = isDone(bar)}
 			{@const indeterminate = bar?.value == null && !done}
-			<!-- |global so the fade also plays when the last bar removes the whole wrapper -->
-			<div class="flex flex-col gap-1" out:fade|global={{ duration: 400 }}>
+			<div class="flex flex-col gap-1">
 				<div
 					class="flex justify-between gap-2 {done
 						? 'text-gray-500 dark:text-gray-400'
@@ -81,11 +81,15 @@
 					aria-valuenow={indeterminate ? undefined : Math.round(percent(bar))}
 				>
 					<div
-						class="h-1.5 rounded-full transition-[width,background-color] duration-700 ease-out {bar?.error
+						class="h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out {bar?.error
 							? 'bg-red-500'
 							: done
 								? 'bg-gray-400 dark:bg-gray-500'
-								: 'bg-gray-900 dark:bg-gray-100 stripes'} {indeterminate ? 'indeterminate' : ''}"
+								: 'bg-gray-900 dark:bg-gray-100'} {indeterminate
+							? 'indeterminate'
+							: done
+								? ''
+								: 'stripes'}"
 						style="width: {indeterminate ? 40 : percent(bar)}%"
 					></div>
 				</div>
@@ -107,7 +111,7 @@
 			transform: translateX(250%);
 		}
 	}
-	/* Active bars: diagonal stripes scroll inside the filled area */
+	/* Active determinate bars: diagonal stripes scroll inside the filled area (indeterminate bars only slide) */
 	.stripes {
 		background-image: linear-gradient(
 			45deg,
@@ -121,11 +125,6 @@
 		);
 		background-size: 0.75rem 0.75rem;
 		animation: stripes-move 0.8s linear infinite;
-	}
-	.stripes.indeterminate {
-		animation:
-			stripes-move 0.8s linear infinite,
-			indeterminate-slide 1.2s ease-in-out infinite;
 	}
 	@keyframes stripes-move {
 		from {
