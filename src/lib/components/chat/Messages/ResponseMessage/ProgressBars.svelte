@@ -19,6 +19,8 @@
 <script>
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	import Spinner from '$lib/components/common/Spinner.svelte';
 
 	// Progress bars streamed via `chat:message:progress` events, updated in place by id.
 	export let bars = [];
@@ -53,49 +55,59 @@
 		{#each visibleBars as bar (bar.id)}
 			{@const done = isDone(bar)}
 			{@const indeterminate = bar?.value == null && !done}
-			<div class="flex flex-col gap-1">
-				<div
-					class="flex justify-between gap-2 {done
-						? 'text-gray-500 dark:text-gray-400'
-						: ''} {bar?.error ? 'text-red-500' : ''}"
-				>
-					<!-- Background only behind the label text (outer span, since shimmer clips its own background to the text) -->
-					<span class="min-w-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900">
-						<span class="line-clamp-1 {done ? '' : 'shimmer'}">
-							{bar?.label ?? bar.id}{done ? (bar?.error ? ' ✗' : ' ✓') : ''}
-						</span>
-					</span>
-					{#if !indeterminate || bar?.started_at}
-						<!-- Elapsed time sits next to the percentage (indeterminate bars show time only) -->
-						<span class="tabular-nums shrink-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900">
-							{#if bar?.started_at}
-								<span class="text-gray-500 dark:text-gray-400">{elapsed(bar, now)}</span>
-							{/if}
-							{#if !indeterminate}{Math.round(percent(bar))}%{/if}
-						</span>
-					{/if}
-				</div>
-				<div
-					class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700 overflow-hidden"
-					role="progressbar"
-					aria-label={bar?.label ?? bar.id}
-					aria-valuemin="0"
-					aria-valuemax="100"
-					aria-valuenow={indeterminate ? undefined : Math.round(percent(bar))}
-				>
+			<!-- flip: when a row leaves, the remaining rows slide into its space -->
+			<div class="flex flex-col gap-1" animate:flip={{ duration: 300 }}>
+				{#if indeterminate && bar?.tool_call_id}
+					<!-- Tool call without reported progress: spinner before the name, no indeterminate bar -->
+					<!-- h-[1.875rem] = a bar row (20px label + 4px gap + 6px bar), so starting progress doesn't change height -->
+					<div class="flex items-center gap-2 h-[1.875rem]">
+						<Spinner className="size-3.5 text-gray-500 dark:text-gray-400" />
+						<span class="line-clamp-1 shimmer">{bar?.label ?? bar.id}</span>
+					</div>
+				{:else}
 					<div
-						class="h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out {bar?.error
-							? 'bg-red-500'
-							: done
-								? 'bg-gray-400 dark:bg-gray-500'
-								: 'bg-gray-900 dark:bg-gray-100'} {indeterminate
-							? 'indeterminate'
-							: done
-								? ''
-								: 'stripes'}"
-						style="width: {indeterminate ? 40 : percent(bar)}%"
-					></div>
-				</div>
+						class="flex justify-between gap-2 {done
+							? 'text-gray-500 dark:text-gray-400'
+							: ''} {bar?.error ? 'text-red-500' : ''}"
+					>
+						<!-- Background only behind the label text (outer span, since shimmer clips its own background to the text) -->
+						<span class="min-w-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900">
+							<span class="line-clamp-1 {done ? '' : 'shimmer'}">
+								{bar?.label ?? bar.id}{done ? (bar?.error ? ' ✗' : ' ✓') : ''}
+							</span>
+						</span>
+						{#if !indeterminate || bar?.started_at}
+							<!-- Elapsed time sits next to the percentage (indeterminate bars show time only) -->
+							<span class="tabular-nums shrink-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900">
+								{#if bar?.started_at}
+									<span class="text-gray-500 dark:text-gray-400">{elapsed(bar, now)}</span>
+								{/if}
+								{#if !indeterminate}{Math.round(percent(bar))}%{/if}
+							</span>
+						{/if}
+					</div>
+					<div
+						class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700 overflow-hidden"
+						role="progressbar"
+						aria-label={bar?.label ?? bar.id}
+						aria-valuemin="0"
+						aria-valuemax="100"
+						aria-valuenow={indeterminate ? undefined : Math.round(percent(bar))}
+					>
+						<div
+							class="h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out {bar?.error
+								? 'bg-red-500'
+								: done
+									? 'bg-gray-400 dark:bg-gray-500'
+									: 'bg-gray-900 dark:bg-gray-100'} {indeterminate
+								? 'indeterminate'
+								: done
+									? ''
+									: 'stripes'}"
+							style="width: {indeterminate ? 40 : percent(bar)}%"
+						></div>
+					</div>
+				{/if}
 			</div>
 		{/each}
 	</div>

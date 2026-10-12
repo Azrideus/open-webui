@@ -21,3 +21,6 @@ backend/data/*
 
 .venv
 .git
+build
+graphify-out
+test
