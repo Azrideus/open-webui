@@ -936,6 +936,7 @@
 								<StatusHistory
 									statusHistory={message?.statusHistory}
 									toolBars={(message?.progress ?? []).filter((bar) => bar?.tool_call_id)}
+									active={!message.done && !message.error}
 								/>
 							{/if}
 

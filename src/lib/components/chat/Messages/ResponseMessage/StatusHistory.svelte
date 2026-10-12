@@ -7,11 +7,21 @@
 	import equal from 'fast-deep-equal';
 	export let statusHistory = [];
 	export let expand = false;
-	// Progress bars of running tool calls; shown even while the history is collapsed.
+	// Progress bars of tool calls: running ones show above the live label, finished ones move into the expandable history.
 	export let toolBars = [];
+	// While the message streams, one tool bar's height stays reserved above the label to minimize layout shift.
+	export let active = false;
 
 	$: showStatus = history && history.length > 0 && status?.hidden !== true;
 	$: hasRunningTools = toolBars.some((bar) => !isDone(bar));
+	// Top list: drop keep_bar and finished errors so only running bars (plus the brief finish linger) stay above the label
+	$: runningTools = toolBars
+		.filter((bar) => !(isDone(bar) && bar?.error))
+		.map((bar) => ({ ...bar, keep_bar: false }));
+	// keep_bar so ProgressBars doesn't auto-hide them in the history list
+	$: finishedTools = toolBars
+		.filter((bar) => isDone(bar))
+		.map((bar) => ({ ...bar, keep_bar: true }));
 
 	let showHistory = true;
 
@@ -33,8 +43,17 @@
 	}
 </script>
 
-{#if showStatus || hasRunningTools}
+{#if showStatus || hasRunningTools || active}
 	<div class="text-[0.9375rem] pt-2 pb-2 flex flex-col w-full">
+		<!-- Running tool calls, above the live label; reserves one bar (min-h-10) while streaming -->
+		{#if active || hasRunningTools}
+			<div class={active ? 'min-h-10' : ''}>
+				{#if runningTools.length > 0}
+					<ProgressBars bars={runningTools} />
+				{/if}
+			</div>
+		{/if}
+
 		{#if showStatus}
 			<button
 				class="w-full"
@@ -50,13 +69,8 @@
 			</button>
 		{/if}
 
-		<!-- Running tool calls with their progress, always visible -->
-		{#if toolBars.length > 0}
-			<ProgressBars bars={toolBars} />
-		{/if}
-
 		{#if showStatus && showHistory}
-			<div class="flex flex-row">
+			<div class="flex flex-col">
 				{#if history.length > 1}
 					<div class="w-full">
 						{#each history as status, idx}
@@ -80,6 +94,10 @@
 							</div>
 						{/each}
 					</div>
+				{/if}
+				<!-- Finished tool calls, visible when the history is expanded -->
+				{#if finishedTools.length > 0}
+					<ProgressBars bars={finishedTools} />
 				{/if}
 			</div>
 		{/if}
