@@ -1,14 +1,47 @@
+<script context="module">
+	// Reaching total (eg set_progress(id, 100)) finishes the bar; no separate end event needed.
+	// Exported so Chat.svelte can stamp `ended_at` when a bar finishes.
+	export const isDone = (bar) =>
+		bar?.done || (bar?.value != null && bar.value >= (bar?.total || 100));
+</script>
+
 <script>
+	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+
 	// Progress bars streamed via `chat:message:progress` events, updated in place by id.
 	export let bars = [];
 
-	// Reaching total (eg set_progress(id, 100)) finishes the bar; no separate end event needed.
-	const isDone = (bar) => bar?.done || (bar?.value != null && bar.value >= (bar?.total || 100));
+	// Ticks once a second so running bars' elapsed time updates.
+	let now = Date.now();
+	onMount(() => {
+		const timer = setInterval(() => (now = Date.now()), 1000);
+		return () => clearInterval(timer);
+	});
+
+	// Elapsed time from `started_at` (stamped on first event) to `ended_at` or now, eg "8s", "1m 05s", "1h 02m".
+	const elapsed = (bar, now) => {
+		if (!bar?.started_at) return '';
+		const sec = Math.max(0, Math.floor(((bar.ended_at ?? now) - bar.started_at) / 1000));
+		const pad = (n) => String(n).padStart(2, '0');
+		if (sec < 60) return `${sec}s`;
+		if (sec < 3600) return `${Math.floor(sec / 60)}m ${pad(sec % 60)}s`;
+		return `${Math.floor(sec / 3600)}h ${pad(Math.floor(sec / 60) % 60)}m`;
+	};
+
 	const percent = (bar) =>
 		isDone(bar) ? 100 : Math.max(0, ((bar?.value ?? 0) / (bar?.total || 100)) * 100);
 
 	// Finished bars disappear unless the sender set `keep_bar`; failed bars stay so errors stay visible.
-	$: visibleBars = bars.filter((bar) => !isDone(bar) || bar?.keep_bar || bar?.error);
+	// A finished bar lingers >=1s after `ended_at` (next tick) so its fill can animate up to 100% before fading out.
+	const LINGER_MS = 1000;
+	$: visibleBars = bars.filter(
+		(bar) =>
+			!isDone(bar) ||
+			bar?.keep_bar ||
+			bar?.error ||
+			(bar?.ended_at && now - bar.ended_at < LINGER_MS)
+	);
 </script>
 
 {#if visibleBars.length}
@@ -16,7 +49,8 @@
 		{#each visibleBars as bar (bar.id)}
 			{@const done = isDone(bar)}
 			{@const indeterminate = bar?.value == null && !done}
-			<div class="flex flex-col gap-1">
+			<!-- |global so the fade also plays when the last bar removes the whole wrapper -->
+			<div class="flex flex-col gap-1" out:fade|global={{ duration: 400 }}>
 				<div
 					class="flex justify-between gap-2 {done
 						? 'text-gray-500 dark:text-gray-400'
@@ -28,10 +62,14 @@
 							{bar?.label ?? bar.id}{done ? (bar?.error ? ' ✗' : ' ✓') : ''}
 						</span>
 					</span>
-					{#if !indeterminate}
-						<span class="tabular-nums shrink-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900"
-							>{Math.round(percent(bar))}%</span
-						>
+					{#if !indeterminate || bar?.started_at}
+						<!-- Elapsed time sits next to the percentage (indeterminate bars show time only) -->
+						<span class="tabular-nums shrink-0 rounded px-1 -mx-1 bg-white dark:bg-gray-900">
+							{#if bar?.started_at}
+								<span class="text-gray-500 dark:text-gray-400">{elapsed(bar, now)}</span>
+							{/if}
+							{#if !indeterminate}{Math.round(percent(bar))}%{/if}
+						</span>
 					{/if}
 				</div>
 				<div
@@ -43,11 +81,11 @@
 					aria-valuenow={indeterminate ? undefined : Math.round(percent(bar))}
 				>
 					<div
-						class="h-1.5 rounded-full transition-all duration-300 {bar?.error
+						class="h-1.5 rounded-full transition-[width,background-color] duration-700 ease-out {bar?.error
 							? 'bg-red-500'
 							: done
 								? 'bg-gray-400 dark:bg-gray-500'
-								: 'bg-gray-900 dark:bg-gray-100'} {indeterminate ? 'indeterminate' : ''}"
+								: 'bg-gray-900 dark:bg-gray-100 stripes'} {indeterminate ? 'indeterminate' : ''}"
 						style="width: {indeterminate ? 40 : percent(bar)}%"
 					></div>
 				</div>
@@ -69,7 +107,36 @@
 			transform: translateX(250%);
 		}
 	}
+	/* Active bars: diagonal stripes scroll inside the filled area */
+	.stripes {
+		background-image: linear-gradient(
+			45deg,
+			rgba(128, 128, 128, 0.45) 25%,
+			transparent 25%,
+			transparent 50%,
+			rgba(128, 128, 128, 0.45) 50%,
+			rgba(128, 128, 128, 0.45) 75%,
+			transparent 75%,
+			transparent
+		);
+		background-size: 0.75rem 0.75rem;
+		animation: stripes-move 0.8s linear infinite;
+	}
+	.stripes.indeterminate {
+		animation:
+			stripes-move 0.8s linear infinite,
+			indeterminate-slide 1.2s ease-in-out infinite;
+	}
+	@keyframes stripes-move {
+		from {
+			background-position: 0 0;
+		}
+		to {
+			background-position: 0.75rem 0;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
+		.stripes,
 		.indeterminate {
 			animation: none;
 		}

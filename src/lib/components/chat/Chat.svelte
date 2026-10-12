@@ -117,6 +117,7 @@
 
 	import Banner from '../common/Banner.svelte';
 	import MessageInput from '$lib/components/chat/MessageInput.svelte';
+	import { isDone as isProgressDone } from './Messages/ResponseMessage/ProgressBars.svelte';
 	import Messages from '$lib/components/chat/Messages.svelte';
 	import Navbar from '$lib/components/chat/Navbar.svelte';
 	import ChatControls from './ChatControls.svelte';
@@ -1596,12 +1597,15 @@
 					}
 				} else if (type === 'chat:message:progress') {
 					// Create or update one progress bar by id; fields merge into the existing bar.
+					// started_at/ended_at are stamped here (unless sent) for the elapsed-time display.
 					const bars = message.progress ?? [];
 					const idx = bars.findIndex((bar) => bar.id === data?.id);
+					const bar = idx !== -1 ? { ...bars[idx], ...data } : { started_at: Date.now(), ...data };
+					if (!bar.ended_at && isProgressDone(bar)) bar.ended_at = Date.now();
 					if (idx !== -1) {
-						bars[idx] = { ...bars[idx], ...data };
+						bars[idx] = bar;
 					} else {
-						bars.push(data);
+						bars.push(bar);
 					}
 					message.progress = bars;
 				} else if (type === 'chat:outlet') {
