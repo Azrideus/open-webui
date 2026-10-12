@@ -10,11 +10,16 @@
 	export let expand = false;
 	// Progress bars of tool calls: running ones show above the live label, finished ones move into the expandable history.
 	export let toolBars = [];
-	// While the message streams, room for 3 tool rows stays reserved above the label to minimize layout shift.
+	// Workflow progress bars (no tool_call_id); shown at the top of the same slot. ProgressBars hides finished ones.
+	export let progressBars = [];
+	// While the message streams, the slot above the label only grows: space left by finished tool calls is kept for the next ones.
 	export let active = false;
 
-	// Measured height of the tool slot; the outer box animates to it so the live label glides instead of jumping.
+	// Measured slot content height; `reserved` is the max seen while streaming (back to the content once done).
+	// The outer box animates to `reserved`, so the slot expands slowly and the live label never jumps.
 	let slotHeight = 0;
+	let reserved = 0;
+	$: reserved = active ? Math.max(reserved, slotHeight) : slotHeight;
 
 	$: showStatus = history && history.length > 0 && status?.hidden !== true;
 	$: hasRunningTools = toolBars.some((bar) => !isDone(bar));
@@ -76,15 +81,19 @@
 	}
 </script>
 
-{#if showStatus || hasRunningTools || active}
+{#if showStatus || hasRunningTools || active || progressBars.length}
 	<div class="text-[0.9375rem] pt-1 pb-0.5 flex flex-col w-full">
-		<!-- Running tool calls above the live label, top-aligned in a slot that reserves 3 rows (min-h-[4.5rem])
-		     while streaming and grows only for more. The outer box animates its height to the measured slot. -->
+		<!-- Running tool calls above the live label, in a slot that starts empty and only grows while streaming.
+		     min-height keeps the reserved space (so the workflow bar stays at its bottom); the outer box animates. -->
 		<div
-			class="overflow-hidden transition-[height] duration-300 ease-out motion-reduce:transition-none"
-			style="height: {slotHeight}px"
+			class="overflow-hidden transition-[height] duration-500 ease-out motion-reduce:transition-none"
+			style="height: {reserved}px"
 		>
-			<div bind:clientHeight={slotHeight} class={active ? 'min-h-[4.5rem]' : ''}>
+			<div
+				bind:clientHeight={slotHeight}
+				class="flex flex-col"
+				style="min-height: {active ? reserved : 0}px"
+			>
 				{#if active || hasRunningTools}
 					<!-- Running tools without progress: spinner before the name -->
 					{#each spinnerTools as bar (bar.id)}
@@ -96,6 +105,12 @@
 					{#if runningTools.length > 0}
 						<ProgressBars bars={runningTools} className="" />
 					{/if}
+				{/if}
+				<!-- Workflow progress bars: always the bottom row of the slot (mt-auto), tool calls stack above -->
+				{#if progressBars.length}
+					<div class="mt-auto">
+						<ProgressBars bars={progressBars} className="" />
+					</div>
 				{/if}
 			</div>
 		</div>

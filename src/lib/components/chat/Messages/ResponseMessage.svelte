@@ -936,11 +936,12 @@
 								<StatusHistory
 									statusHistory={message?.statusHistory}
 									toolBars={(message?.progress ?? []).filter((bar) => bar?.tool_call_id)}
+									progressBars={(message?.progress ?? []).filter((bar) => !bar?.tool_call_id)}
 									active={!message.done && !message.error}
 								/>
 							{/if}
 
-							<!-- Progress bars moved to an overlay above the chat input (MessageInput.svelte) -->
+							<!-- Workflow progress bars render in StatusHistory's slot above the live label -->
 
 							{#if !message.done && !message.error && (hasResponseContent || !hasVisibleStatus)}
 								<div class="text-[0.9375rem] leading-relaxed">

@@ -122,7 +122,6 @@
 	import Expand from '../icons/Expand.svelte';
 	import QueuedMessageItem from './MessageInput/QueuedMessageItem.svelte';
 	import TaskList from './Messages/ResponseMessage/TaskList.svelte';
-	import ProgressBars from './Messages/ResponseMessage/ProgressBars.svelte';
 
 	const i18n: any = getContext('i18n');
 
@@ -1704,17 +1703,6 @@
 					: 'max-w-[58rem]'} w-full"
 			>
 				<div class="relative">
-					<!-- Progress bars float just above the input with no backdrop (no reserved space, no layout shift); only their labels get a background -->
-					<!-- Tool call bars (tool_call_id) show in the live status area instead -->
-					{#if history?.messages?.[history?.currentId]?.progress?.some((bar: { tool_call_id?: string }) => !bar?.tool_call_id)}
-						<div class="absolute bottom-0 inset-x-0 z-20 px-1 pointer-events-none">
-							<ProgressBars
-								bars={history.messages[history.currentId].progress.filter(
-									(bar: { tool_call_id?: string }) => !bar?.tool_call_id
-								)}
-							/>
-						</div>
-					{/if}
 					{#if typingUsers.length > 0}
 						<div
 							class="absolute -top-7 inset-x-0 pointer-events-none select-none bg-linear-to-t from-white dark:from-gray-900 to-transparent pb-2.5"
