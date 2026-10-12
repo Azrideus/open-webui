@@ -3,6 +3,17 @@
 	// Exported so Chat.svelte can stamp `ended_at` when a bar finishes.
 	export const isDone = (bar) =>
 		bar?.done || (bar?.value != null && bar.value >= (bar?.total || 100));
+
+	// Elapsed time from `started_at` (stamped on first event) to `ended_at` or now, eg "8s", "1m 05s", "1h 02m".
+	// Exported for StatusHistory's finished tool-call rows.
+	export const elapsed = (bar, now = Date.now()) => {
+		if (!bar?.started_at) return '';
+		const sec = Math.max(0, Math.floor(((bar.ended_at ?? now) - bar.started_at) / 1000));
+		const pad = (n) => String(n).padStart(2, '0');
+		if (sec < 60) return `${sec}s`;
+		if (sec < 3600) return `${Math.floor(sec / 60)}m ${pad(sec % 60)}s`;
+		return `${Math.floor(sec / 3600)}h ${pad(Math.floor(sec / 60) % 60)}m`;
+	};
 </script>
 
 <script>
@@ -18,16 +29,6 @@
 		const timer = setInterval(() => (now = Date.now()), 500);
 		return () => clearInterval(timer);
 	});
-
-	// Elapsed time from `started_at` (stamped on first event) to `ended_at` or now, eg "8s", "1m 05s", "1h 02m".
-	const elapsed = (bar, now) => {
-		if (!bar?.started_at) return '';
-		const sec = Math.max(0, Math.floor(((bar.ended_at ?? now) - bar.started_at) / 1000));
-		const pad = (n) => String(n).padStart(2, '0');
-		if (sec < 60) return `${sec}s`;
-		if (sec < 3600) return `${Math.floor(sec / 60)}m ${pad(sec % 60)}s`;
-		return `${Math.floor(sec / 3600)}h ${pad(Math.floor(sec / 60) % 60)}m`;
-	};
 
 	const percent = (bar) =>
 		isDone(bar) ? 100 : Math.max(0, ((bar?.value ?? 0) / (bar?.total || 100)) * 100);

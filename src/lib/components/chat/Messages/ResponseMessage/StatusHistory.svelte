@@ -3,7 +3,7 @@
 	const i18n = getContext('i18n');
 
 	import StatusItem from './StatusHistory/StatusItem.svelte';
-	import ProgressBars, { isDone } from './ProgressBars.svelte';
+	import ProgressBars, { isDone, elapsed } from './ProgressBars.svelte';
 	import equal from 'fast-deep-equal';
 	export let statusHistory = [];
 	export let expand = false;
@@ -18,10 +18,21 @@
 	$: runningTools = toolBars
 		.filter((bar) => !(isDone(bar) && bar?.error))
 		.map((bar) => ({ ...bar, keep_bar: false }));
-	// keep_bar so ProgressBars doesn't auto-hide them in the history list
-	$: finishedTools = toolBars
-		.filter((bar) => isDone(bar))
-		.map((bar) => ({ ...bar, keep_bar: true }));
+	// Expanded history: statuses and finished tool calls as one list. A tool goes before the status at its
+	// `status_idx` (statuses seen when it started); tools without one go last.
+	$: items = (() => {
+		const finished = toolBars.filter((bar) => isDone(bar));
+		const out = [];
+		for (let i = 0; i <= history.length; i++) {
+			for (const bar of finished.filter((b) => b.status_idx === i)) out.push({ bar });
+			if (i < history.length) out.push({ status: history[i] });
+		}
+		for (const bar of finished.filter(
+			(b) => !(b.status_idx >= 0 && b.status_idx <= history.length)
+		))
+			out.push({ bar });
+		return out;
+	})();
 
 	let showHistory = true;
 
@@ -71,9 +82,9 @@
 
 		{#if showStatus && showHistory}
 			<div class="flex flex-col">
-				{#if history.length > 1}
+				{#if items.length > 1}
 					<div class="w-full">
-						{#each history as status, idx}
+						{#each items as item, idx}
 							<div class="flex items-stretch gap-2 mb-1">
 								<div class=" ">
 									<div class="pt-3 px-1 mb-1.5">
@@ -83,21 +94,34 @@
 											></span>
 										</span>
 									</div>
-									{#if idx !== history.length - 1}
+									{#if idx !== items.length - 1}
 										<div
 											class="w-[0.03125rem] ml-[0.40625rem] h-[calc(100%-14px)] bg-gray-300 dark:bg-gray-700"
 										/>
 									{/if}
 								</div>
 
-								<StatusItem {status} done={true} />
+								{#if item.bar}
+									<!-- Finished tool call: name, tick/cross and time taken only -->
+									<div
+										class="status-description flex items-center gap-2 py-0.5 text-[0.9375rem] {item
+											.bar.error
+											? 'text-red-500'
+											: ''}"
+									>
+										<span class="line-clamp-1"
+											>{item.bar.label ?? item.bar.id}{item.bar.error ? ' ✗' : ' ✓'}</span
+										>
+										<span class="tabular-nums text-gray-500 dark:text-gray-400 shrink-0"
+											>{elapsed(item.bar)}</span
+										>
+									</div>
+								{:else}
+									<StatusItem status={item.status} done={true} />
+								{/if}
 							</div>
 						{/each}
 					</div>
-				{/if}
-				<!-- Finished tool calls, visible when the history is expanded -->
-				{#if finishedTools.length > 0}
-					<ProgressBars bars={finishedTools} />
 				{/if}
 			</div>
 		{/if}

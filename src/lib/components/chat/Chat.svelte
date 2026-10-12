@@ -1607,9 +1607,17 @@
 				} else if (type === 'chat:message:progress') {
 					// Create or update one progress bar by id; fields merge into the existing bar.
 					// started_at/ended_at are stamped here (unless sent) for the elapsed-time display.
+					// status_idx = statuses seen so far, so StatusHistory can slot the bar into the status list in order.
 					const bars = message.progress ?? [];
 					const idx = bars.findIndex((bar) => bar.id === data?.id);
-					const bar = idx !== -1 ? { ...bars[idx], ...data } : { started_at: Date.now(), ...data };
+					const bar =
+						idx !== -1
+							? { ...bars[idx], ...data }
+							: {
+									started_at: Date.now(),
+									status_idx: message.statusHistory?.length ?? 0,
+									...data
+								};
 					if (!bar.ended_at && isProgressDone(bar)) bar.ended_at = Date.now();
 					if (idx !== -1) {
 						bars[idx] = bar;
